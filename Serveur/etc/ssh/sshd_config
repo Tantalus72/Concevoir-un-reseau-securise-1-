@@ -1,0 +1,7 @@
+# problablement rien à changer
+
+Port 22 
+PasswordAuthentication yes
+PermitRootLogin prohibit-password
+
+# etc
