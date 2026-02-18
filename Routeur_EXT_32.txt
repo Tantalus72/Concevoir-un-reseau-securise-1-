@@ -1,0 +1,29 @@
+! =======================================================
+! CONFIGURATION ROUTEUR EXTERNE - SITE 32
+! =======================================================
+conf t
+hostname Routeur-Ext-32
+enable secret lannion
+
+interface GigabitEthernet0/0/0
+ ip address 90.0.32.254 255.255.255.0
+ no shutdown
+
+interface Serial0/1/0
+ ip address 30.0.0.32 255.255.255.0
+ no shutdown
+
+ interface loopback 132
+  ip address 132.132.132.132 255.255.255.255
+  no shutdown
+
+ip routing
+router ospf 132
+ router-id 132.132.132.132
+ network 30.0.0.0 0.0.0.255 area 0
+ network 90.0.32.0 0.0.0.255 area 32
+ network 132.132.132.132 0.0.0.0 area 32
+exit
+line vty 0 4
+ password lannion
+ login 

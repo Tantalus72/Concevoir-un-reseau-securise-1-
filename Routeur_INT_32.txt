@@ -1,0 +1,216 @@
+! =======================================================
+! CONFIGURATION ROUTEUR INTERNE - SITE 32
+! =======================================================
+conf t 
+ip routing 
+hostname Routeur-Int-32
+
+class-map match-all CLASS_VIDEO
+  match access-group name ACL_QOS_VIDEO
+class-map match-all CLASS_SERVEUR
+  match access-group name ACL_QOS_SERVEUR
+class-map match-all CLASS_PRIVE
+  match access-group name ACL_QOS_PRIVE
+  
+policy-map QOS
+  class CLASS_VIDEO
+   priority 2000
+   set dscp ef
+  class CLASS_SERVEUR
+   bandwidth remaining percent 40
+   set dscp cs3
+  class CLASS_PRIVE
+   bandwidth remaining percent 30
+   set dscp cs2
+
+interface Loopback32
+ ip address 32.32.32.32 255.255.255.255
+ no shut
+
+interface FastEthernet0/0
+ no ip address
+ no ip proxy-arp
+ duplex auto
+ speed auto
+ no cdp enable
+ no shut
+
+interface FastEthernet0/0.1
+ encapsulation dot1Q 321
+ ip address 50.50.32.254 255.255.255.0
+ ip nat outside
+ no cdp enable
+ no shut
+!
+interface FastEthernet0/0.2
+ encapsulation dot1Q 322
+ ip address 192.168.32.254 255.255.255.0
+ ip access-group ACL_PRIVE_IN in
+ ip helper-address 50.50.32.1
+ ip nat inside
+ no cdp enable
+ no shut
+!
+interface FastEthernet0/1
+ ip address 90.0.32.1 255.255.255.0
+ ip access-group ACL_SEC_IN in
+ no ip proxy-arp
+ ip nat outside
+ duplex auto
+ speed auto
+ no cdp enable
+ service-policy output QOS
+ no shut
+!
+interface Ethernet1/0
+ ip address 150.150.32.254 255.255.255.0
+ ip access-group ACL_PUBLIC_IN in
+ ip helper-address 50.50.32.1
+ no ip proxy-arp
+ ip nat outside
+ half-duplex
+ no cdp enable
+ no shut
+
+router ospf 32
+ router-id 32.32.32.32
+ log-adjacency-changes
+ passive-interface FastEthernet0/0
+ passive-interface FastEthernet0/0.1
+ passive-interface FastEthernet0/0.2
+ passive-interface Ethernet1/0
+ network 32.32.32.32 0.0.0.0 area 32
+ network 50.50.32.0 0.0.0.255 area 32
+ network 90.0.32.0 0.0.0.255 area 32
+ network 150.150.32.0 0.0.0.255 area 32
+
+
+ip access-list extended ACL_QOS_SERVEUR
+ permit ip 50.50.32.0 0.0.0.255 any
+ip access-list extended ACL_QOS_VIDEO
+ permit udp any any eq 5004
+ 
+ip access-list extended ACL_SEC_IN
+ permit ospf any any
+ permit icmp any any
+ permit udp any any eq 5004
+ permit tcp any host 50.50.32.1 eq www
+ permit udp any host 50.50.32.1 eq domain
+ permit tcp any host 50.50.32.1 eq ftp
+ permit tcp any host 50.50.32.1 eq ftp-data
+ permit tcp any host 50.50.32.1 eq 22
+ permit ip any 150.150.32.0 0.0.0.255
+ permit tcp any any established
+ deny   ip any any log
+
+
+line vty 0 4
+ password lannion
+ login
+
+class-map match-all CLASS_VIDEO                                                 
+  match access-group name ACL_QOS_VIDEO                                         
+class-map match-all CLASS_SERVEUR                                               
+  match access-group name ACL_QOS_SERVEUR                                       
+class-map match-all CLASS_PRIVE                                                 
+  match access-group name ACL_QOS_PRIVE                                         
+
+policy-map QOS                                                                  
+  class CLASS_VIDEO                                                             
+   priority 2000                                                                
+   set dscp ef                                                                  
+  class CLASS_SERVEUR                                                           
+   bandwidth remaining percent 40                                               
+   set dscp cs3                                                                 
+  class CLASS_PRIVE                                                             
+   bandwidth remaining percent 30                                               
+   set dscp cs2                                                                 
+
+interface Loopback32                                                            
+ ip address 32.32.32.32 255.255.255.255                                         
+
+interface FastEthernet0/0                                                       
+ no ip address                                                                  
+ no ip proxy-arp                                                                
+ duplex auto                                                                    
+ speed auto                                                                     
+ no cdp enable                                                                  
+
+interface FastEthernet0/0.1                                                     
+ encapsulation dot1Q 321                                                        
+ ip address 50.50.32.254 255.255.255.0                                          
+ ip nat outside                                                                 
+ no cdp enable                                                                  
+
+interface FastEthernet0/0.2                                                     
+ encapsulation dot1Q 322                                                        
+ ip address 192.168.32.254 255.255.255.0                                        
+ ip access-group ACL_PRIVE_IN in                                                
+ ip helper-address 50.50.32.1                                                   
+ ip nat inside                                                                  
+ no cdp enable                                                                  
+
+interface FastEthernet0/1                                                       
+ ip address 90.0.32.1 255.255.255.0                                             
+ ip access-group ACL_SEC_IN in                                                  
+ no ip proxy-arp                                                                
+ ip nat outside                                                                 
+ duplex auto                                                                    
+ speed auto                                                                     
+ no cdp enable                                                                  
+ service-policy output QOS                                                      
+
+interface Ethernet1/0                                                           
+ ip address 150.150.32.254 255.255.255.0                                        
+ ip access-group ACL_PUBLIC_IN in                                               
+ ip helper-address 50.50.32.1                                                   
+ no ip proxy-arp                                                                
+ ip nat outside                                                                 
+ half-duplex                                                                    
+ no cdp enable                                                                  
+
+router ospf 32                                                                  
+ router-id 32.32.32.32                                                          
+ log-adjacency-changes                                                          
+ passive-interface FastEthernet0/0                                              
+ passive-interface FastEthernet0/0.1                                            
+ passive-interface FastEthernet0/0.2                                            
+ passive-interface Ethernet1/0                                                  
+ network 32.32.32.32 0.0.0.0 area 32                                            
+ network 50.50.32.0 0.0.0.255 area 32                                           
+ network 90.0.32.0 2550.0.0.255 area 32                                            
+ network 150.150.32.0 0.0.0.255 area 32                                         
+
+ip access-list extended ACL_PRIVE_IN                                            
+ permit udp any any eq bootps                                                   
+ permit udp any any eq bootpc                                                   
+ permit ip 192.168.32.0 0.0.0.63 150.150.31.0 0.0.0.255                         
+ permit ip 192.168.32.0 0.0.0.255 50.50.32.0 0.0.0.255                          
+ permit ip 192.168.32.0 0.0.0.255 150.150.32.0 0.0.0.255                        
+ permit ip 192.168.32.0 0.0.0.255 50.50.31.0 0.0.0.255                          
+ permit ip 192.168.32.0 0.0.0.255 192.168.32.0 0.0.0.255                        
+ip access-list extended ACL_PUBLIC_IN                                           
+ permit udp any any eq bootps                                                   
+ permit udp any any eq bootpc                                                   
+ permit tcp 150.150.32.0 0.0.0.255 host 50.50.32.1 eq 22                        
+ permit tcp 150.150.32.0 0.0.0.255 host 50.50.32.1 eq www                       
+ permit udp 150.150.32.0 0.0.0.255 host 50.50.32.1 eq 5004                      
+ permit tcp 150.150.32.0 0.0.0.255 host 50.50.32.1 eq ftp                       
+ permit tcp 150.150.32.0 0.0.0.255 host 50.50.32.1 eq ftp-data                  
+ permit tcp any any established                                                 
+ip access-list extended ACL_QOS_SERVEUR                                         
+ permit ip 50.50.32.0 0.0.0.255 any                                             
+ip access-list extended ACL_QOS_VIDEO                                           
+ permit udp any any eq 5004                                                     
+ip access-list extended ACL_SEC_IN                                              
+ permit ospf any any                                                            
+ permit icmp any any                                                            
+ permit udp any any eq 5004                                                     
+ permit tcp any host 50.50.32.1 eq www                                          
+ permit udp any host 50.50.32.1 eq domain                                       
+ permit tcp any host 50.50.32.1 eq ftp                                          
+ permit tcp any host 50.50.32.1 eq ftp-data                                     
+ permit tcp any host 50.50.32.1 eq 22                                           
+ permit tcp any any established                                                 
+ deny   ip any any log                                                          
+

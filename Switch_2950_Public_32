@@ -1,0 +1,8 @@
+! =======================================================
+! CONFIGURATION SWITCH PUBLIC - SITE 32
+! =======================================================
+conf t
+hostname Switch-Public-32
+interface range FastEthernet0/21 - 23
+shutdown
+exit

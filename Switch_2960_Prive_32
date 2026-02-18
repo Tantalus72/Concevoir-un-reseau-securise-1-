@@ -1,0 +1,43 @@
+! =======================================================
+! CONFIGURATION SWITCH PRIVE - SITE 32
+! =======================================================
+conf t
+hostname Switch-Prive-32
+
+vlan 321
+ name SERVEUR
+vlan 322
+ name PRIVE
+exit
+
+interface Vlan321
+ ip address 50.50.32.253 255.255.255.0
+ no shutdown
+exit
+
+dot1x system-auth-control
+aaa new-model
+aaa authentication dot1x default group radius                                   
+aaa authorization network default group radius 
+radius server RADIUS_32
+ address ipv4 50.50.32.1 auth-port 1812 acct-port 1813
+ key P4ssw0rd!
+exit
+
+interface FastEthernet0/24
+ switchport mode trunk
+
+interface FastEthernet0/23
+ switchport mode access
+ switchport access vlan 321
+
+interface range FastEthernet0/1 - 15
+ switchport mode access
+ switchport access vlan 322
+ authentication port-control auto
+ dot1x pae authenticator
+ spanning-tree portfast
+
+interface range FastEthernet0/16 - 22
+shutdown
+exit
